@@ -13,14 +13,13 @@ namespace ObjectPrinting.Tests
         [SetUp]
         public void CreatePerson()
         {
-            person = new Person {Name = "Alex", Age = 19, Height = 180.5};
+            person = new Person {Name = "Alex", Age = 19};
         }
-
 
         [Test]
         public void ExcludingType_ShouldBeSerializeWithoutThisType()
         {
-            var expected = "Person\r\n\tName = Alex\r\n\tHeight = 180,5\r\n\tAge = 19\r\n";
+            var expected = "Person\r\n\tName = Alex\r\n\tHeight = 0\r\n\tAge = 19\r\n";
             person.PrintToString(s => s.Excluding<Guid>()).Should().Be(expected);
 
         }
@@ -28,7 +27,7 @@ namespace ObjectPrinting.Tests
         [Test]
         public void Alternative_ShouldBeSerialize()
         {
-            var expected = "Person\r\n\tId = Guid\r\n\tName = Alex\r\n\tHeight = 180,5\r\n\tAge = 13\r\n";
+            var expected = "Person\r\n\tId = Guid\r\n\tName = Alex\r\n\tHeight = 0\r\n\tAge = 13\r\n";
             person.PrintToString(s => s
                     .Printing<int>()
                     .Using(p => p.ToString("X")))
@@ -38,17 +37,19 @@ namespace ObjectPrinting.Tests
         [Test]
         public void CultureForNumbers()
         {
+            person.Height = 180.5;
             var expected = "Person\r\n\tId = Guid\r\n\tName = Alex\r\n\tHeight = 180.5\r\n\tAge = 19\r\n";
             person.PrintToString(s => s
                     .Printing<double>()
                     .Using(CultureInfo.InvariantCulture))
                 .Should().Be(expected);
+            person.Height = 0;
         }
 
         [Test]
         public void SerializeForProperty()
         {
-            var expected = "Person\r\n\tId = Guid\r\n\tName = Alex this is name\r\n\tHeight = 180,5\r\n\tAge = 19\r\n";
+            var expected = "Person\r\n\tId = Guid\r\n\tName = Alex this is name\r\n\tHeight = 0\r\n\tAge = 19\r\n";
             person.PrintToString(s => s
                     .Printing(p => p.Name)
                     .Using(n => n + " this is name"))
@@ -59,7 +60,7 @@ namespace ObjectPrinting.Tests
         public void TrimmedString_ShouldBeTrimmed()
         {
             person.Name = "Very long name very long name";
-            var expected = "Person\r\n\tId = Guid\r\n\tName = Very long name\r\n\tHeight = 180,5\r\n\tAge = 19\r\n";
+            var expected = "Person\r\n\tId = Guid\r\n\tName = Very long name\r\n\tHeight = 0\r\n\tAge = 19\r\n";
             person.PrintToString(s => s
                     .Printing(p => p.Name)
                     .TrimmedString(14))

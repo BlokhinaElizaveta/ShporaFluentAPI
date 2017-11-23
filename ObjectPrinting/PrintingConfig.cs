@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,19 +7,22 @@ using System.Text;
 
 namespace ObjectPrinting
 {
-    public class PrintingConfig<TOwner>
+    public class PrintingConfig<TOwner> :IPrintingConfig
     {
         private readonly HashSet<Type> excludingTypes;
         private readonly HashSet<PropertyInfo> excludingProperties;
-        internal Dictionary<Type, Delegate> SerializationForType;
-        internal Dictionary<PropertyInfo, Delegate> SerializationForProperty;
+        private readonly Dictionary<Type, Delegate> typeSerializers;
+        private readonly Dictionary<PropertyInfo, Delegate> propertySerializers;
+
+        Dictionary<Type, Delegate> IPrintingConfig.TypeSerializers => typeSerializers;
+        Dictionary<PropertyInfo, Delegate> IPrintingConfig.PropertySerializers => propertySerializers;
 
         public PrintingConfig()
         {
             excludingTypes = new HashSet<Type>(); 
             excludingProperties = new HashSet<PropertyInfo>();
-            SerializationForType = new Dictionary<Type, Delegate>();
-            SerializationForProperty = new Dictionary<PropertyInfo, Delegate>();
+            typeSerializers = new Dictionary<Type, Delegate>();
+            propertySerializers = new Dictionary<PropertyInfo, Delegate>();
         }
 
         public PrintingConfig<TOwner> Excluding<T>()
@@ -31,15 +33,13 @@ namespace ObjectPrinting
 
         public PrintingConfig<TOwner> Excluding<TPropType>(Expression<Func<TOwner, TPropType>> memberSelector)
         {
-            var property = (PropertyInfo)((MemberExpression)memberSelector.Body).Member;
-            excludingProperties.Add(property);
+            excludingProperties.Add(memberSelector.GetProperty());
             return this;
         }
 
         public SerializeConfig<TOwner, TPropType> Printing<TPropType>(Expression<Func<TOwner, TPropType>> memberSelector)
-        {
-            var property = (PropertyInfo)((MemberExpression)memberSelector.Body).Member;   
-            return new SerializeConfig<TOwner, TPropType>(this, property); //нужно пробросить memberSelector в SerializeConfig
+        {  
+            return new SerializeConfig<TOwner, TPropType>(this, memberSelector.GetProperty());
         }
 
         public SerializeConfig<TOwner, TPropType> Printing<TPropType>()
@@ -78,11 +78,11 @@ namespace ObjectPrinting
 
                 var value = propertyInfo.GetValue(obj);           
 
-                if (SerializationForType.ContainsKey(typeProperty))
-                    value = SerializationForType[typeProperty].DynamicInvoke(value);
+                if (typeSerializers.ContainsKey(typeProperty))
+                    value = typeSerializers[typeProperty].DynamicInvoke(value);
 
-                if (SerializationForProperty.ContainsKey(propertyInfo))
-                    value = SerializationForProperty[propertyInfo].DynamicInvoke(value);
+                if (propertySerializers.ContainsKey(propertyInfo))
+                    value = propertySerializers[propertyInfo].DynamicInvoke(value);
 
                 sb.Append(identation + propertyInfo.Name + " = " +
                           PrintToString(value, nestingLevel + 1));

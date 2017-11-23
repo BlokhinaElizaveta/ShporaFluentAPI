@@ -49,6 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExpressionExtensions.cs" />
+    <Compile Include="IPrintingConfig.cs" />
+    <Compile Include="ISerializeConfig.cs" />
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="ObjectPrinter.cs" />
     <Compile Include="PrintingConfig.cs" />

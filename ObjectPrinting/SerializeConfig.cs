@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ObjectPrinting
 {
     public class SerializeConfig<TOwner, TPropType> : PrintingConfig<TOwner>, ISerializeConfig<TOwner, TPropType>
     {
-        private PrintingConfig<TOwner> printingConfig;
-        private Type type;
-        private PropertyInfo property;
-        
+        private readonly PrintingConfig<TOwner> printingConfig;
+        private readonly Type type;
+        private readonly PropertyInfo property;
+
+        PrintingConfig<TOwner> ISerializeConfig<TOwner, TPropType>.PrintingConfig => printingConfig;
+        PropertyInfo ISerializeConfig<TOwner, TPropType>.Property => property;
+        Type ISerializeConfig<TOwner, TPropType>.Type => type;
+
         public SerializeConfig(PrintingConfig<TOwner> printingConfig)
         {
             this.printingConfig = printingConfig;  
@@ -40,23 +40,13 @@ namespace ObjectPrinting
         private void ChangeAlternativeSerialization(Func<TPropType, string> func)
         {
             if (type != null)
-                printingConfig.SerializationForType[type] = func;
+                ((IPrintingConfig)printingConfig).TypeSerializers[type] = func;
         }
 
         private void ChangeSerializationForProperty(Func<TPropType, string> func)
         {
             if (property != null)
-                printingConfig.SerializationForProperty[property] = func;
+                ((IPrintingConfig)printingConfig).PropertySerializers[property] = func;
         }
-
-
-        PrintingConfig<TOwner> ISerializeConfig<TOwner, TPropType>.PrintingConfig => printingConfig;
-        PropertyInfo ISerializeConfig<TOwner, TPropType>.Property => property;
-    }
-
-    public interface ISerializeConfig<TOwner, TPropType>
-    {
-        PrintingConfig<TOwner> PrintingConfig { get; }
-        PropertyInfo Property { get; }
     }
 }
