@@ -40,13 +40,13 @@ namespace ObjectPrinting
         private void ChangeAlternativeSerialization(Func<TPropType, string> func)
         {
             if (type != null)
-                ((IPrintingConfig)printingConfig).TypeSerializers[type] = func;
+                (printingConfig as IPrintingConfig).TypeSerializers[type] = func;
         }
 
         private void ChangeSerializationForProperty(Func<TPropType, string> func)
         {
             if (property != null)
-                ((IPrintingConfig)printingConfig).PropertySerializers[property] = func;
+                (printingConfig as IPrintingConfig).PropertySerializers[property] = func;
         }
     }
 }

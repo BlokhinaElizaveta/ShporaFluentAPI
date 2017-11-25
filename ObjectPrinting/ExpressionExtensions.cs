@@ -7,7 +7,7 @@ namespace ObjectPrinting
     {
         public static PropertyInfo GetProperty<T>(this Expression<T> expression)
         {
-            return ((MemberExpression) expression.Body).Member as PropertyInfo;
+            return (expression.Body as MemberExpression)?.Member as PropertyInfo;
         }
     }
 }
